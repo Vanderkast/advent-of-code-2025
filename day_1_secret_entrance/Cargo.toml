@@ -1,8 +1,0 @@
-[package]
-name = "day_1_secret_entrance"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-snafu = "0.8.9"
-rstest = "0.26.1"
