@@ -1,12 +1,12 @@
 use crate::day_1::rotation::Rotation;
 use crate::day_1::{DIAL_BASE, DayOnePart, INITIAL_CURSOR_POSITION};
 
-pub(super) struct PartOne {
+pub(super) struct PartTwo {
     cursor: u32,
     cursor_points_zero_times: u32,
 }
 
-impl PartOne {
+impl PartTwo {
     pub fn new() -> Self {
         Self {
             cursor: INITIAL_CURSOR_POSITION,
@@ -15,23 +15,30 @@ impl PartOne {
     }
 }
 
-impl DayOnePart for PartOne {
+impl DayOnePart for PartTwo {
     fn apply(&mut self, rotation: Rotation) {
         match rotation {
             Rotation::Left(distance) => {
+                self.cursor_points_zero_times += distance / DIAL_BASE;
                 let distance = distance % DIAL_BASE;
                 self.cursor = if distance > self.cursor {
+                    if self.cursor != 0 {
+                        self.cursor_points_zero_times += 1;
+                    }
                     DIAL_BASE - distance + self.cursor
-                } else {
+                } else if distance < self.cursor {
                     self.cursor - distance
+                } else {
+                    self.cursor_points_zero_times += 1;
+                    0
                 };
             }
             Rotation::Right(distance) => {
-                self.cursor = (self.cursor + distance % DIAL_BASE) % DIAL_BASE;
+                self.cursor_points_zero_times += (self.cursor + distance) / DIAL_BASE;
+                // self.cursor_points_zero_times += val / DIAL_BASE;
+                let val = distance % DIAL_BASE;
+                self.cursor = (self.cursor + val) % DIAL_BASE;
             }
-        }
-        if self.cursor == 0 {
-            self.cursor_points_zero_times += 1;
         }
     }
 
@@ -48,16 +55,17 @@ mod tests {
     #[rstest]
     #[case(Rotation::Left(1), 49, 0)]
     #[case(Rotation::Right(1), 51, 0)]
-    #[case(Rotation::Left(51), 99, 0)]
-    #[case(Rotation::Right(51), 1, 0)]
+    #[case(Rotation::Left(51), 99, 1)]
+    #[case(Rotation::Right(51), 1, 1)]
     #[case(Rotation::Left(50), 0, 1)]
     #[case(Rotation::Right(50), 0, 1)]
+    #[case(Rotation::Right(100), 50, 1)]
     fn apply_rotation(
         #[case] rotation: Rotation,
         #[case] expected_cursor: u32,
         #[case] expected_result: u32,
     ) {
-        let mut part = PartOne::new();
+        let mut part = PartTwo::new();
         part.apply(rotation);
 
         assert_eq!(expected_cursor, part.cursor);

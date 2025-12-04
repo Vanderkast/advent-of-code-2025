@@ -1,11 +1,12 @@
 use crate::Part;
 use crate::day_1::part_1::PartOne;
+use crate::day_1::part_2::PartTwo;
 use crate::day_1::rotation::{Rotation, RotationParsingError};
 use snafu::{ResultExt, Snafu};
 use std::path::PathBuf;
 
-pub mod part_1;
-
+mod part_1;
+mod part_2;
 mod rotation;
 
 const INITIAL_CURSOR_POSITION: u32 = 50;
@@ -21,13 +22,12 @@ pub struct DayOne {
 impl DayOne {
     pub fn run(&self) -> Result<String, String> {
         let input = std::fs::read_to_string(&self.path).map_err(|err| err.to_string())?;
-        let part = match self.part {
-            Part::PartOne => PartOne::new(),
-            Part::PartTwo => {
-                todo!()
-            }
-        };
-        let result = Self::run_inner(&input, part).map_err(|err| err.to_string())?;
+
+        let result = match self.part {
+            Part::PartOne => Self::run_inner(&input, PartOne::new()),
+            Part::PartTwo => Self::run_inner(&input, PartTwo::new()),
+        }
+        .map_err(|err| err.to_string())?;
 
         Ok(format!("Password: {}", result))
     }
@@ -67,10 +67,12 @@ pub enum Error {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::day_1::part_2::PartTwo;
     use rstest::*;
 
     #[rstest]
-    #[case::example(EXAMPLE_INPUT, PartOne::new(), Some(3))]
+    // #[case::part_one_example_input(EXAMPLE_INPUT, PartOne::new(), Some(3))]
+    #[case::part_two_example_input(EXAMPLE_INPUT, PartTwo::new(), Some(6))]
     fn run_inner(
         #[case] input: &str,
         #[case] part: impl DayOnePart,
