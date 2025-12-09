@@ -71,7 +71,7 @@ mod tests {
     use rstest::*;
 
     #[rstest]
-    // #[case::part_one_example_input(EXAMPLE_INPUT, PartOne::new(), Some(3))]
+    #[case::part_one_example_input(EXAMPLE_INPUT, PartOne::new(), Some(3))]
     #[case::part_two_example_input(EXAMPLE_INPUT, PartTwo::new(), Some(6))]
     fn run_inner(
         #[case] input: &str,
