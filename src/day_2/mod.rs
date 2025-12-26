@@ -30,40 +30,83 @@ impl DayTwo {
         Ok(format!("Sum of all invalid IDs: {}", result))
     }
 
-    fn run_inner(input: &str, mut part: impl DayTwoPart) -> Result<u32, Error> {
+    fn run_inner(input: &str, mut part: impl DayTwoPart) -> Result<u64, Error> {
         for range_split in input.split(",") {
-            if let Some((left_num, right_num)) = range_split.split_once("-") {
-                left_num.parse::<u32>().context(NumberParsingSnafu {
-                    number: left_num,
-                    range: range_split,
-                })?;
-                right_num.parse::<u32>().context(NumberParsingSnafu {
-                    number: right_num,
-                    range: range_split,
-                })?;
-
-                part.find_invalid_ids((left_num, right_num));
+            if let Some(range) = range_split.split_once("-") {
+                let range = Range::try_from(range)?;
+                part.handle_range(range)?;
             }
         }
-
         Ok(part.result())
     }
 }
 
 #[derive(Debug, Snafu)]
-enum Error {
-    #[snafu(display("Failed to parse number {number} in range {range}"))]
+pub(super) enum Error {
+    #[snafu(display("Failed to parse number {number}"))]
     NumberParsing {
         source: ParseIntError,
         number: String,
-        range: String,
     },
+    #[snafu(display("Range left bound is higher then right bound: {from}-{to}"))]
+    RangeBounds { from: u64, to: u64 },
+}
+
+pub(super) struct Range {
+    range: (u64, u64),
+    original: (String, String),
+}
+
+impl Range {
+    pub fn new(range: (u64, u64)) -> Result<Self, Error> {
+        if range.0 <= range.1 {
+            Ok(Self {
+                range,
+                original: (range.0.to_string(), range.1.to_string()),
+            })
+        } else {
+            Err(Error::RangeBounds {
+                from: range.0,
+                to: range.1,
+            })
+        }
+    }
+
+    pub fn from(&self) -> u64 {
+        self.range.0
+    }
+
+    pub fn to(&self) -> u64 {
+        self.range.1
+    }
+}
+
+impl<T: AsRef<str>> TryFrom<(T, T)> for Range {
+    type Error = Error;
+
+    fn try_from(value: (T, T)) -> Result<Self, Self::Error> {
+        let (from, to) = (value.0.as_ref(), value.1.as_ref());
+        let from = from
+            .parse::<u64>()
+            .context(NumberParsingSnafu { number: from })?;
+        let to = to
+            .parse::<u64>()
+            .context(NumberParsingSnafu { number: to })?;
+        if to < from {
+            Err(Error::RangeBounds { from, to })
+        } else {
+            Ok(Self {
+                range: (from, to),
+                original: (from.to_string(), to.to_string()),
+            })
+        }
+    }
 }
 
 pub(super) trait DayTwoPart: Debug {
-    fn find_invalid_ids(&mut self, range: (&str, &str));
+    fn handle_range(&mut self, range: Range) -> Result<(), Error>;
 
-    fn result(&self) -> u32;
+    fn result(&self) -> u64;
 }
 
 impl From<Part> for Box<dyn DayTwoPart> {

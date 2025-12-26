@@ -34,7 +34,7 @@ enum Day {
             short,
             long,
             value_parser = clap::value_parser!(PathBuf),
-            default_value = first_day_default_input_path().into_os_string(),
+            default_value = second_day_default_input_path().into_os_string(),
         )]
         path: PathBuf,
     },
@@ -51,6 +51,10 @@ impl std::fmt::Display for Day {
 
 fn first_day_default_input_path() -> PathBuf {
     PathBuf::from("./inputs/day_1.txt")
+}
+
+fn second_day_default_input_path() -> PathBuf {
+    PathBuf::from("./inputs/day_2.txt")
 }
 
 #[derive(Clone, Debug, ValueEnum)]
